@@ -110,8 +110,8 @@ ATTR_WEAK platform_clock_source_configuration_t platform_clock_source_configurat
 
 	// Derived clocks -- including PLLs and dividiers.
 	[CLOCK_SOURCE_PLL0_USB]            = { .frequency = 480 * MHZ, .source = CLOCK_SOURCE_PRIMARY_INPUT },
-	[CLOCK_SOURCE_PLL0_AUDIO]          = { .frequency = 26 * MHZ, .source = CLOCK_SOURCE_PRIMARY_INPUT},
-	[CLOCK_SOURCE_PLL1]                = { .frequency = 204 * MHZ, .source = CLOCK_SOURCE_PRIMARY_INPUT },
+	[CLOCK_SOURCE_PLL0_AUDIO]          = { .frequency = 49408 * KHZ, .source = CLOCK_SOURCE_XTAL_OSCILLATOR },
+	[CLOCK_SOURCE_PLL1]                = { .frequency = 197632 * KHZ, .source = CLOCK_SOURCE_PLL0_AUDIO },
 	[CLOCK_SOURCE_DIVIDER_A_OUT]       = {},
 	[CLOCK_SOURCE_DIVIDER_B_OUT]       = {},
 	[CLOCK_SOURCE_DIVIDER_C_OUT]       = {},
@@ -1693,12 +1693,12 @@ static unsigned platform_identify_clock_frequency_mhz(clock_source_t source)
  */
 static int platform_bring_up_audio_pll(void)
 {
-	const uint32_t audio_pll_target = 26 * MHZ;
+	const uint32_t audio_pll_target = 49408 * KHZ;
 
 	// Constants for the specified frequency. From the NXP PLL calculator.
-	const uint32_t m_divider_constant = 2047;
-	const uint32_t n_divider_constant = 0;
-	const uint32_t p_divider_constant = 10;
+	const uint32_t m_divider_constant = 21836;
+	const uint32_t n_divider_constant = 1;
+	const uint32_t p_divider_constant = 1;
 
 
 	// Time to wait for the  PLL to lock up.
@@ -1740,14 +1740,15 @@ static int platform_bring_up_audio_pll(void)
 	cgu->pll_audio.core.p_divider_coefficient = p_divider_constant;
 
 	// Set up the PLL, per NXP's PLL calculator.
-	cgu->pll_audio.core.direct_input = 1;
+	cgu->pll_audio.core.direct_input = 0;
 	cgu->pll_audio.core.direct_output = 0;
 	cgu->pll_audio.core.clock_enable = 1;
 	cgu->pll_audio.core.set_free_running = 0;
 
-	// We don't use the fractional divider, or its delta-sigma modulator.
-	cgu->pll_audio.core.audio_use_fractional_divider = 1;
-	cgu->pll_audio.core.audio_power_down_delta_sigma= 1;
+	cgu->pll_audio.core.audio_use_fractional_divider = 0;
+	cgu->pll_audio.core.audio_power_down_delta_sigma = 0;
+	cgu->pll_audio.core.audio_write_fractional_divider = 1;
+	cgu->pll_audio.fractional_divider = 0x12872b;
 
 	// Turn the PLL on...
 	cgu->pll_audio.core.powered_down = 0;

@@ -318,6 +318,9 @@ static int sgpio_set_up_clocking(sgpio_t *sgpio, sgpio_function_t *function, uin
 		uint32_t sgpio_clock_frequency = platform_get_branch_clock_frequency(&ccu->periph.sgpio);
 		uint32_t clock_divider;
 
+		pr_info("sgpio slice %c: requesting clock of %" PRIu32 ", sgpio_clock_frequency is %" PRIu32 "\n",
+			slice + 'A', function->shift_clock_frequency, sgpio_clock_frequency);
+
 		// If the frequency has been defined as zero, we take this to mean "as fast as possible" --
 		// i.e. at the undivided rate of the SGPIO clock.
 		if (function->shift_clock_frequency == 0) {
@@ -348,6 +351,10 @@ static int sgpio_set_up_clocking(sgpio_t *sgpio, sgpio_function_t *function, uin
 		// Update the function's knowledge of the shift clock with the actual clock rate achieved.
 		// This will be different if the SGPIO clock isn't evenly divisible by the desired clock rate.
 		function->shift_clock_frequency = sgpio_clock_frequency / clock_divider;
+
+		pr_info("sgpio slice %c: produced %" PRIu32 " clock from a %" PRIu32 " input clock with %"
+				PRIu32 " clock_divider\n", slice + 'A', function->shift_clock_frequency,
+				sgpio_clock_frequency, clock_divider);
 	}
 
 	// If we're expecting to use an external pin as our ULPI shift clock, we need to configure that
